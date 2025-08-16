@@ -112,14 +112,6 @@ size = int(
         help="Number of random samples to generate",
     )
 )
-seed_input = st.sidebar.text_input(
-    "Seed (optional)", help="Set an integer seed for reproducibility"
-)
-if seed_input:
-    try:
-        np.random.seed(int(seed_input))
-    except ValueError:
-        st.sidebar.warning("Seed must be an integer")
 
 params: Dict[str, float] = {}
 if dist == "Poisson":
@@ -164,10 +156,6 @@ samples, mean, variance = run_simulation(dist, size, params)
 skewness = float(skew(samples))
 kurt = float(kurtosis(samples))
 
-st.markdown(
-    f"### You generated {size:,} samples with mean = {mean:.3f} and skewness = {skewness:.3f}"
-)
-
 st.markdown("### 📈 Summary Metrics")
 col1, col2, col3, col4 = st.columns(4)
 col1.metric("Mean", f"{mean:.3f}")
@@ -175,12 +163,31 @@ col2.metric("Variance", f"{variance:.3f}")
 col3.metric("Skewness", f"{skewness:.3f}", help="Measure of asymmetry")
 col4.metric("Kurtosis", f"{kurt:.3f}", help="Measure of tail heaviness")
 
-with st.expander("What does Skewness mean?"):
-    st.markdown(
-        "Skewness quantifies the asymmetry of a distribution. A positive value "
-        "indicates a longer right tail, while a negative value indicates a "
-        "longer left tail."
-    )
+STAT_INSIGHTS = {
+    "Poisson": (
+        "**Did you know?**\n\n"
+        "The **Poisson distribution** is often used to model the number of times an event occurs in a fixed interval of time or space. "
+        "A key property is that **its mean and variance are both equal to λ (lambda)**, which makes it unique among discrete distributions. \n\n"
+        "It's widely used in real-world scenarios such as **modeling call arrivals at a call center**, **the number of emails received per hour**, or **accident counts at an intersection**. "
+        "Another fascinating aspect is that for large λ, the Poisson distribution starts to resemble a Normal distribution — a phenomenon known as the **law of rare events**."
+    ),
+    "Beta": (
+        "**Did you know?**\n\n"
+        "The **Beta distribution** is a continuous probability distribution defined on the interval [0, 1]. It's incredibly versatile — "
+        "**by tuning the shape parameters α and β**, it can resemble a **uniform, bell-shaped, J-shaped, or U-shaped** distribution. \n\n"
+        "This makes it especially useful in **Bayesian statistics**, where it's commonly used to represent prior distributions of probabilities. "
+        "For example, in A/B testing, the Beta distribution is often used to **model uncertainty in conversion rates**."
+    ),
+    "Log-Normal": (
+        "**Did you know?**\n\n"
+        "In a **Log-Normal distribution**, the logarithm of the variable is normally distributed. That means if X is Log-Normal, then log(X) follows a Normal distribution. \n\n"
+        "This distribution is positively skewed, with a long right tail, and is often used to model **real-world quantities that can’t be negative** and tend to grow multiplicatively, such as **income**, **stock prices**, **time to failure**, or **biological measurements**. \n\n"
+        "It’s particularly useful in **financial modeling** where returns often exhibit multiplicative effects rather than additive ones."
+    ),
+}
+
+with st.expander("📘 Statistical Insight"):
+    st.markdown(STAT_INSIGHTS[dist])
 
 # ---------------------------------------------------------------------------
 # Tabs for content
@@ -193,13 +200,44 @@ overview_tab, plot_tab, clt_tab, data_tab, download_tab = st.tabs(
 with overview_tab:
     st.markdown(OVERVIEW_TEXT[dist])
 
+def get_plot_description(dist: str, log_scale: bool) -> str:
+    if dist == "Poisson":
+        scale_note = "logarithmic scale" if log_scale else "linear scale"
+        return (
+            f"This plot displays a histogram of Poisson-distributed event counts "
+            f"overlaid with the theoretical Poisson PMF. The x-axis shows the number "
+            f"of occurrences (k), while the y-axis shows the probability of each count. "
+            f"The red curve is the expected PMF (λ = {params['lam']:.2f}) and the blue bars represent "
+            f"empirical data. Using a {scale_note} helps interpret rare vs frequent events."
+        )
+    elif dist == "Beta":
+        scale_note = "logarithmic scale" if log_scale else "linear scale"
+        return (
+            f"This plot shows the Beta distribution over [0,1] with parameters "
+            f"α = {params['alpha']:.2f}, β = {params['beta']:.2f}. The red curve shows the theoretical "
+            f"Beta PDF while the histogram shows the simulated data. The x-axis shows probability-like values "
+            f"and the y-axis shows density. {scale_note.capitalize()} helps visualize distribution skew and mode."
+        )
+    elif dist == "Log-Normal":
+        scale_note = "logarithmic scale" if log_scale else "linear scale"
+        return (
+            f"This histogram shows a Log-Normal distribution (μ = {params['mu']:.2f}, σ = {params['sigma']:.2f}) "
+            f"with the theoretical PDF overlay. The x-axis represents non-negative values, and the y-axis shows "
+            f"density. A log scale is especially useful to reveal long-tail behavior in skewed distributions."
+        )
+    return "No description available."
+
 with plot_tab:
     log_scale = st.checkbox("Log scale", value=False)
     fig = plot_distribution(dist, samples, params)
     if log_scale:
         fig.axes[0].set_yscale("log")
     st.pyplot(fig)
-    st.caption("Your histogram vs. ideal curve")
+
+    st.markdown(
+        f"### You generated {size:,} samples with mean = {mean:.3f} and skewness = {skewness:.3f}"
+    )
+    st.markdown(get_plot_description(dist, log_scale))
 
 with clt_tab:
     st.subheader("Central Limit Theorem Demo")
