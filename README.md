@@ -1,6 +1,6 @@
 # Codex-Stats-Lab
 
-A Streamlit-powered dashboard that explores interesting statistical properties of Poisson, Beta, and Log-Normal distributions built with the assistance of Codex, OpenAI’s Agentic AI. Designed as an interactive, educational tool for both technical users and non-technical stakeholders.
+Codex Stats Lab is a visual, interactive dashboard for exploring how Poisson, Beta, and Log-Normal distributions behave. Built with Streamlit, it pairs dynamic plots with plain-language explanations so you can tweak parameters, watch the curves respond, and connect the math to real-world questions. Whether you're a student, analyst, or curious stakeholder, the app offers an approachable way to understand why these distributions matter and how they inform data-driven decisions.
 
 ## Technologies Used
 
