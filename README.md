@@ -14,9 +14,9 @@ A Streamlit-powered dashboard that explores interesting statistical properties o
 
 # Links
 
-Application - 
+Application - https://prathamhusky07-codex-stats-lab-app-dev-itdrct.streamlit.app/
 
-Codelabs - 
+Codelabs - https://codelabs-preview.appspot.com/?file_id=1QA_iNmivmTRGnljOMy22HJlTJvMNlmytawTPQP81yxE#0
 
 
 ![Alt text](assets/arch.png)
